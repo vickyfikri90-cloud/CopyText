@@ -1,6 +1,8 @@
 # CopyText
 
-100% Swift macOS menu bar app — screenshot → native OCR → clipboard.
+**macOS menu bar app — screenshot to clipboard via native OCR, optional Apple Intelligence cleanup.**
+
+100% Swift, on-device processing. No cloud, no API keys.
 
 ## Open in Xcode
 
@@ -55,4 +57,4 @@ CopyText/
 └── MenuBarIconView.swift   # Icon per state
 ```
 
-→ [[about_CopyText_MacApp]] · [[plan_CopyText_MVP]]
+→ [About](about_CopyText_MacApp.md) · [MVP plan](plan_CopyText_MVP.md)

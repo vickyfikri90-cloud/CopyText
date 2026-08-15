@@ -4,3 +4,6 @@ dist/
 DerivedData/
 *.xcuserstate
 xcuserdata/
+
+# duplicate assets at project root (canonical copy is CopyText/spinner_loading/)
+/spinner_loading/
