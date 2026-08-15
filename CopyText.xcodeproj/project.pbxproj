@@ -1,0 +1,330 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		A10000000000000000000001 /* CopyTextApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* CopyTextApp.swift */; };
+		A10000000000000000000002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppState.swift */; };
+		A10000000000000000000003 /* AppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AppController.swift */; };
+		A10000000000000000000004 /* ClipboardWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ClipboardWatcher.swift */; };
+		A10000000000000000000005 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* OCRService.swift */; };
+		A10000000000000000000006 /* AICleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* AICleaner.swift */; };
+		A10000000000000000000007 /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* EventLog.swift */; };
+		A10000000000000000000008 /* DevLogWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* DevLogWindow.swift */; };
+		A10000000000000000000009 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* MenuContentView.swift */; };
+		A10000000000000000000010 /* MenuBarIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* MenuBarIconView.swift */; };
+		A10000000000000000000011 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000011 /* Assets.xcassets */; };
+		A10000000000000000000012 /* SpinnerFrames.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* SpinnerFrames.swift */; };
+		A10000000000000000000013 /* spinner_loading in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* spinner_loading */; };
+		A10000000000000000000014 /* BuildInfo.generated.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* BuildInfo.generated.swift */; };
+		A10000000000000000000015 /* TextNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* TextNormalizer.swift */; };
+		A10000000000000000000016 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AppDelegate.swift */; };
+		A10000000000000000000017 /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* StatusBarController.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		A20000000000000000000001 /* CopyTextApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CopyTextApp.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* ClipboardWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWatcher.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* AICleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICleaner.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* EventLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* DevLogWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevLogWindow.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
+		A20000000000000000000010 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconView.swift; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A20000000000000000000012 /* CopyText.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CopyText.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A20000000000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000000000000000000014 /* CopyText.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CopyText.entitlements; sourceTree = "<group>"; };
+		A20000000000000000000015 /* SpinnerFrames.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpinnerFrames.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* spinner_loading */ = {isa = PBXFileReference; lastKnownFileType = folder; path = spinner_loading; sourceTree = "<group>"; };
+		A20000000000000000000017 /* BuildInfo.generated.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BuildInfo.generated.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* TextNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextNormalizer.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* StatusBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusBarController.swift; sourceTree = "<group>"; };
+		B20000000000000000000001 /* update_build_date.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = update_build_date.sh; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		A40000000000000000000001 = {
+			isa = PBXGroup;
+			children = (
+				A40000000000000000000002 /* CopyText */,
+				B40000000000000000000001 /* Scripts */,
+				A40000000000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		B40000000000000000000001 /* Scripts */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000001 /* update_build_date.sh */,
+			);
+			path = Scripts;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000002 /* CopyText */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000001 /* CopyTextApp.swift */,
+				A20000000000000000000019 /* AppDelegate.swift */,
+				A20000000000000000000020 /* StatusBarController.swift */,
+				A20000000000000000000002 /* AppState.swift */,
+				A20000000000000000000003 /* AppController.swift */,
+				A20000000000000000000004 /* ClipboardWatcher.swift */,
+				A20000000000000000000005 /* OCRService.swift */,
+				A20000000000000000000006 /* AICleaner.swift */,
+				A20000000000000000000007 /* EventLog.swift */,
+				A20000000000000000000008 /* DevLogWindow.swift */,
+				A20000000000000000000009 /* MenuContentView.swift */,
+				A20000000000000000000010 /* MenuBarIconView.swift */,
+				A20000000000000000000015 /* SpinnerFrames.swift */,
+				A20000000000000000000017 /* BuildInfo.generated.swift */,
+				A20000000000000000000018 /* TextNormalizer.swift */,
+				A20000000000000000000011 /* Assets.xcassets */,
+				A20000000000000000000016 /* spinner_loading */,
+				A20000000000000000000013 /* Info.plist */,
+				A20000000000000000000014 /* CopyText.entitlements */,
+			);
+			path = CopyText;
+			sourceTree = "<group>";
+		};
+		A40000000000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A20000000000000000000012 /* CopyText.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		A50000000000000000000001 /* CopyText */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A70000000000000000000003 /* Build configuration list for PBXNativeTarget "CopyText" */;
+			buildPhases = (
+				B60000000000000000000001 /* Update Build Date */,
+				A60000000000000000000001 /* Sources */,
+				A30000000000000000000001 /* Frameworks */,
+				A60000000000000000000002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CopyText;
+			productName = CopyText;
+			productReference = A20000000000000000000012 /* CopyText.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A80000000000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					A50000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+				};
+			};
+			buildConfigurationList = A70000000000000000000001 /* Build configuration list for PBXProject "CopyText" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = A40000000000000000000001;
+			productRefGroup = A40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				A50000000000000000000001 /* CopyText */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A60000000000000000000002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000011 /* Assets.xcassets in Resources */,
+				A10000000000000000000013 /* spinner_loading in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		B60000000000000000000001 /* Update Build Date */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Update Build Date";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Scripts/update_build_date.sh\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		A60000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000001 /* CopyTextApp.swift in Sources */,
+				A10000000000000000000002 /* AppState.swift in Sources */,
+				A10000000000000000000003 /* AppController.swift in Sources */,
+				A10000000000000000000004 /* ClipboardWatcher.swift in Sources */,
+				A10000000000000000000005 /* OCRService.swift in Sources */,
+				A10000000000000000000006 /* AICleaner.swift in Sources */,
+				A10000000000000000000007 /* EventLog.swift in Sources */,
+				A10000000000000000000008 /* DevLogWindow.swift in Sources */,
+				A10000000000000000000009 /* MenuContentView.swift in Sources */,
+				A10000000000000000000010 /* MenuBarIconView.swift in Sources */,
+				A10000000000000000000012 /* SpinnerFrames.swift in Sources */,
+				A10000000000000000000014 /* BuildInfo.generated.swift in Sources */,
+				A10000000000000000000015 /* TextNormalizer.swift in Sources */,
+				A10000000000000000000016 /* AppDelegate.swift in Sources */,
+				A10000000000000000000017 /* StatusBarController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		A90000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_DYNAMIC_NO_PIC = NO;
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		A90000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+			};
+			name = Release;
+		};
+		A90000000000000000000003 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CopyText/CopyText.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CopyText/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vicky.copytext;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		A90000000000000000000004 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CopyText/CopyText.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CopyText/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vicky.copytext;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		A70000000000000000000001 /* Build configuration list for PBXProject "CopyText" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000001 /* Debug */,
+				A90000000000000000000002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A70000000000000000000003 /* Build configuration list for PBXNativeTarget "CopyText" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A90000000000000000000003 /* Debug */,
+				A90000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A80000000000000000000001 /* Project object */;
+}
