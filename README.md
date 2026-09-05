@@ -1,8 +1,8 @@
 # CopyText
 
-**macOS menu bar app — screenshot to clipboard via native OCR, optional Apple Intelligence cleanup.**
+**macOS menu bar app — screenshot to clipboard via native OCR, optional Gemini JSON extraction.**
 
-100% Swift, on-device processing. No cloud, no API keys.
+100% Swift. CopyText mode is fully on-device. Extract JSON sends screenshots to Google Gemini cloud.
 
 ## Open in Xcode
 
@@ -28,33 +28,44 @@ open dist/CopyText.app
 
 ## How to use
 
-1. Click the CopyText icon in the menu bar
-2. Click **Start**
-3. Take a screenshot with **⌘⇧4** (must copy to clipboard)
-4. Paste with **⌘V**
+### CopyText (local, default)
+
+1. **Single-click** the menu bar icon
+2. Take a screenshot with **⌘⇧4** (must copy to clipboard)
+3. Paste with **⌘V**
+
+Uses native Vision OCR — no cloud, no API keys.
+
+### Extract JSON (cloud)
+
+1. Right-click icon → **Extract JSON Settings…**
+2. Paste your Gemini API key, pick a model, edit prompt if needed
+3. **Double-click** the menu bar icon
+4. Take a screenshot with **⌘⇧4**
+5. Paste JSON with **⌘V**
+
+Screenshot is uploaded to Google Gemini for vision + JSON extraction. No local OCR in this mode.
 
 ## Features
 
-- Native Vision OCR — no cloud, no API keys
-- **AI Mode** — optional Apple Intelligence cleanup (supported Macs only)
+- **CopyText** — local Vision OCR + line-break normalization
+- **Extract JSON** — Gemini vision API, configurable model & prompt
+- **Burst mode** — right-click → Start for 1 Min (CopyText only, local)
 - **Dev Mode** — chronological processing log window
 - **Launch at Login** — optional
-- State-driven menu bar icon: idle → waiting → processing → success/failure
 
 ## Project structure
 
 ```
 CopyText/
-├── CopyTextApp.swift       # App entry + MenuBarExtra
-├── AppController.swift     # State machine + pipeline orchestration
-├── AppState.swift          # WorkflowState enum
-├── ClipboardWatcher.swift  # Poll clipboard for screenshots
-├── OCRService.swift        # Vision text recognition
-├── AICleaner.swift         # Foundation Models cleanup
-├── EventLog.swift          # Dev log + file mirror
-├── DevLogWindow.swift      # Log viewer window
-├── MenuContentView.swift   # Menu bar dropdown
-└── MenuBarIconView.swift   # Icon per state
+├── AppController.swift         # State machine + pipeline orchestration
+├── StatusBarController.swift   # Menu bar icon + click handling
+├── OCRService.swift            # Vision text recognition (CopyText mode)
+├── GeminiClient.swift          # Gemini vision API (Extract JSON mode)
+├── GeminiSettings.swift        # API key, model, prompt settings
+├── ExtractJSONSettingsView.swift
+├── TextNormalizer.swift        # Line-break merging
+└── ...
 ```
 
 → [About](about_CopyText_MacApp.md) · [MVP plan](plan_CopyText_MVP.md)

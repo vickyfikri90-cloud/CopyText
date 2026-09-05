@@ -6,11 +6,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let controller = AppController()
     private var statusBar: StatusBarController?
     private var devLogWindow: NSWindow?
+    private var settingsWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        statusBar = StatusBarController(controller: controller) { [weak self] in
-            self?.showDevLog()
-        }
+        statusBar = StatusBarController(
+            controller: controller,
+            openDevLog: { [weak self] in self?.showDevLog() },
+            openExtractJSONSettings: { [weak self] in self?.showExtractJSONSettings() }
+        )
     }
 
     func showDevLog() {
@@ -23,6 +26,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             devLogWindow = window
         }
         devLogWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func showExtractJSONSettings() {
+        if settingsWindow == nil {
+            let hosting = NSHostingController(
+                rootView: ExtractJSONSettingsView(settings: controller.geminiSettings)
+            )
+            let window = NSWindow(contentViewController: hosting)
+            window.title = "Extract JSON Settings"
+            window.setContentSize(NSSize(width: 420, height: 420))
+            window.center()
+            settingsWindow = window
+        }
+        settingsWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 }

@@ -6,8 +6,13 @@ struct MenuContentView: View {
 
     var body: some View {
         Group {
-            Button("Start") {
-                controller.start()
+            Button("Start (CopyText)") {
+                controller.start(mode: .copyText)
+            }
+            .disabled(!controller.state.canStart)
+
+            Button("Start (Extract JSON)") {
+                controller.start(mode: .extractJSON)
             }
             .disabled(!controller.state.canStart)
 
@@ -18,13 +23,6 @@ struct MenuContentView: View {
             }
 
             Divider()
-
-            if controller.aiModeAvailable {
-                Toggle("AI Mode", isOn: Binding(
-                    get: { controller.aiModeEnabled },
-                    set: { _ in controller.toggleAIMode() }
-                ))
-            }
 
             Toggle("Dev Mode", isOn: Binding(
                 get: { controller.devModeEnabled },

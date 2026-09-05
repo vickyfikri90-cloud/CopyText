@@ -6,13 +6,25 @@ import SwiftUI
 final class StatusBarController: NSObject {
     private let controller: AppController
     private let openDevLog: () -> Void
+    private let openExtractJSONSettings: () -> Void
     private var statusItem: NSStatusItem?
     private var hostingView: NSHostingView<MenuBarIconView>?
     private var cancellables = Set<AnyCancellable>()
+    private var lastClickTimestamp: TimeInterval = 0
+    private var pendingSingleClick: DispatchWorkItem?
 
-    init(controller: AppController, openDevLog: @escaping () -> Void) {
+    private enum ClickTiming {
+        static let doubleClickWindow: TimeInterval = 0.35
+    }
+
+    init(
+        controller: AppController,
+        openDevLog: @escaping () -> Void,
+        openExtractJSONSettings: @escaping () -> Void
+    ) {
         self.controller = controller
         self.openDevLog = openDevLog
+        self.openExtractJSONSettings = openExtractJSONSettings
         super.init()
         setupStatusItem()
         observeState()
@@ -22,7 +34,7 @@ final class StatusBarController: NSObject {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         guard let button = statusItem?.button else { return }
 
-        let hosting = NSHostingView(rootView: MenuBarIconView(state: controller.state))
+        let hosting = NSHostingView(rootView: MenuBarIconView(state: controller.state, pipelineMode: controller.currentPipelineMode))
         hosting.frame = NSRect(x: 0, y: 0, width: 22, height: 22)
         hosting.translatesAutoresizingMaskIntoConstraints = false
         button.addSubview(hosting)
@@ -43,7 +55,8 @@ final class StatusBarController: NSObject {
         controller.$state
             .receive(on: RunLoop.main)
             .sink { [weak self] state in
-                self?.hostingView?.rootView = MenuBarIconView(state: state)
+                guard let self else { return }
+                self.hostingView?.rootView = MenuBarIconView(state: state, pipelineMode: self.controller.currentPipelineMode)
             }
             .store(in: &cancellables)
     }
@@ -53,9 +66,29 @@ final class StatusBarController: NSObject {
 
         if event.type == .rightMouseUp {
             showMenu(on: sender)
-        } else {
-            controller.toggleFromIconClick()
+            return
         }
+
+        let now = ProcessInfo.processInfo.systemUptime
+        // Only treat as a double-click if we already have a previous click timestamp.
+        // This avoids mis-detecting the very first click right after app launch.
+        if lastClickTimestamp > 0, now - lastClickTimestamp < ClickTiming.doubleClickWindow {
+            pendingSingleClick?.cancel()
+            pendingSingleClick = nil
+            lastClickTimestamp = 0
+            controller.handleIconClick(mode: .extractJSON)
+            return
+        }
+
+        lastClickTimestamp = now
+        let clickTime = now
+        let task = DispatchWorkItem { [weak self] in
+            guard let self, self.lastClickTimestamp == clickTime else { return }
+            self.lastClickTimestamp = 0
+            self.controller.handleIconClick(mode: .copyText)
+        }
+        pendingSingleClick = task
+        DispatchQueue.main.asyncAfter(deadline: .now() + ClickTiming.doubleClickWindow, execute: task)
     }
 
     private func showMenu(on button: NSStatusBarButton) {
@@ -72,16 +105,13 @@ final class StatusBarController: NSObject {
 
         menu.addItem(.separator())
 
-        if controller.aiModeAvailable {
-            let aiItem = NSMenuItem(
-                title: "AI Mode",
-                action: #selector(toggleAIMode),
-                keyEquivalent: ""
-            )
-            aiItem.target = self
-            aiItem.state = controller.aiModeEnabled ? .on : .off
-            menu.addItem(aiItem)
-        }
+        let settingsItem = NSMenuItem(
+            title: "Extract JSON Settings…",
+            action: #selector(openSettings),
+            keyEquivalent: ""
+        )
+        settingsItem.target = self
+        menu.addItem(settingsItem)
 
         let devItem = NSMenuItem(
             title: "Dev Mode",
@@ -109,6 +139,14 @@ final class StatusBarController: NSObject {
 
         menu.addItem(.separator())
 
+        let hintItem = NSMenuItem(
+            title: "Single-click: CopyText · Double-click: Extract JSON",
+            action: nil,
+            keyEquivalent: ""
+        )
+        hintItem.isEnabled = false
+        menu.addItem(hintItem)
+
         let statusItem = NSMenuItem(title: "Status: \(controller.statusLabel)", action: nil, keyEquivalent: "")
         statusItem.isEnabled = false
         menu.addItem(statusItem)
@@ -130,8 +168,8 @@ final class StatusBarController: NSObject {
         controller.startForOneMinute()
     }
 
-    @objc private func toggleAIMode() {
-        controller.toggleAIMode()
+    @objc private func openSettings() {
+        openExtractJSONSettings()
     }
 
     @objc private func toggleDevMode() {

@@ -12,7 +12,12 @@
 		A10000000000000000000003 /* AppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* AppController.swift */; };
 		A10000000000000000000004 /* ClipboardWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* ClipboardWatcher.swift */; };
 		A10000000000000000000005 /* OCRService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* OCRService.swift */; };
-		A10000000000000000000006 /* AICleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* AICleaner.swift */; };
+		A10000000000000000000018 /* PipelineMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* PipelineMode.swift */; };
+		A10000000000000000000019 /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* ImageEncoder.swift */; };
+		A10000000000000000000020 /* GeminiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* GeminiClient.swift */; };
+		A10000000000000000000021 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* KeychainStore.swift */; };
+		A10000000000000000000022 /* GeminiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* GeminiSettings.swift */; };
+		A10000000000000000000023 /* ExtractJSONSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* ExtractJSONSettingsView.swift */; };
 		A10000000000000000000007 /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* EventLog.swift */; };
 		A10000000000000000000008 /* DevLogWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* DevLogWindow.swift */; };
 		A10000000000000000000009 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* MenuContentView.swift */; };
@@ -32,7 +37,12 @@
 		A20000000000000000000003 /* AppController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppController.swift; sourceTree = "<group>"; };
 		A20000000000000000000004 /* ClipboardWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWatcher.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* OCRService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OCRService.swift; sourceTree = "<group>"; };
-		A20000000000000000000006 /* AICleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICleaner.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* PipelineMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineMode.swift; sourceTree = "<group>"; };
+		A20000000000000000000022 /* ImageEncoder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEncoder.swift; sourceTree = "<group>"; };
+		A20000000000000000000023 /* GeminiClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* GeminiSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiSettings.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* ExtractJSONSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractJSONSettingsView.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* EventLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* DevLogWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevLogWindow.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
@@ -88,7 +98,12 @@
 				A20000000000000000000003 /* AppController.swift */,
 				A20000000000000000000004 /* ClipboardWatcher.swift */,
 				A20000000000000000000005 /* OCRService.swift */,
-				A20000000000000000000006 /* AICleaner.swift */,
+				A20000000000000000000021 /* PipelineMode.swift */,
+				A20000000000000000000022 /* ImageEncoder.swift */,
+				A20000000000000000000023 /* GeminiClient.swift */,
+				A20000000000000000000024 /* KeychainStore.swift */,
+				A20000000000000000000025 /* GeminiSettings.swift */,
+				A20000000000000000000026 /* ExtractJSONSettingsView.swift */,
 				A20000000000000000000007 /* EventLog.swift */,
 				A20000000000000000000008 /* DevLogWindow.swift */,
 				A20000000000000000000009 /* MenuContentView.swift */,
@@ -209,7 +224,12 @@
 				A10000000000000000000003 /* AppController.swift in Sources */,
 				A10000000000000000000004 /* ClipboardWatcher.swift in Sources */,
 				A10000000000000000000005 /* OCRService.swift in Sources */,
-				A10000000000000000000006 /* AICleaner.swift in Sources */,
+				A10000000000000000000018 /* PipelineMode.swift in Sources */,
+				A10000000000000000000019 /* ImageEncoder.swift in Sources */,
+				A10000000000000000000020 /* GeminiClient.swift in Sources */,
+				A10000000000000000000021 /* KeychainStore.swift in Sources */,
+				A10000000000000000000022 /* GeminiSettings.swift in Sources */,
+				A10000000000000000000023 /* ExtractJSONSettingsView.swift in Sources */,
 				A10000000000000000000007 /* EventLog.swift in Sources */,
 				A10000000000000000000008 /* DevLogWindow.swift in Sources */,
 				A10000000000000000000009 /* MenuContentView.swift in Sources */,

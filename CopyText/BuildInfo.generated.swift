@@ -1,4 +1,4 @@
 // Auto-generated at compile time — do not edit
 enum BuildInfo {
-    static let compiledAt = "2026-07-04 20:38"
+    static let compiledAt = "2026-09-05 21:43"
 }

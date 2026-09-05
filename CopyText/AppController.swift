@@ -6,9 +6,6 @@ import ServiceManagement
 final class AppController: ObservableObject {
     @Published private(set) var state: WorkflowState = .idle
     @Published private(set) var isBurstSession = false
-    @Published var aiModeEnabled: Bool {
-        didSet { UserDefaults.standard.set(aiModeEnabled, forKey: Keys.aiMode) }
-    }
     @Published var devModeEnabled: Bool {
         didSet { UserDefaults.standard.set(devModeEnabled, forKey: Keys.devMode) }
     }
@@ -17,13 +14,14 @@ final class AppController: ObservableObject {
     }
 
     let eventLog = EventLog()
-    let aiModeAvailable: Bool
+    let geminiSettings = GeminiSettings()
 
     private let clipboardWatcher = ClipboardWatcher()
     private var resultResetTask: Task<Void, Never>?
     private var pipelineTask: Task<Void, Never>?
     private var waitingTimeoutTask: Task<Void, Never>?
     private var burstTimeoutTask: Task<Void, Never>?
+    @Published private(set) var currentPipelineMode: PipelineMode = .copyText
 
     private enum CaptureSession {
         case none
@@ -34,7 +32,6 @@ final class AppController: ObservableObject {
     private var captureSession: CaptureSession = .none
 
     private enum Keys {
-        static let aiMode = "aiModeEnabled"
         static let devMode = "devModeEnabled"
     }
 
@@ -45,10 +42,8 @@ final class AppController: ObservableObject {
     }
 
     init() {
-        aiModeEnabled = UserDefaults.standard.bool(forKey: Keys.aiMode)
         devModeEnabled = UserDefaults.standard.bool(forKey: Keys.devMode)
         launchAtLoginEnabled = LaunchAtLogin.isEnabled()
-        aiModeAvailable = AICleaner.isAvailable
 
         clipboardWatcher.onImageDetected = { [weak self] payload in
             Task { @MainActor in
@@ -63,13 +58,12 @@ final class AppController: ObservableObject {
         }
 
         eventLog.log("CopyText started")
-        eventLog.log("AI Mode available: \(aiModeAvailable)")
     }
 
-    func toggleFromIconClick() {
+    func handleIconClick(mode: PipelineMode) {
         switch state {
         case .idle:
-            start()
+            start(mode: mode)
         case .waiting:
             cancel(reason: "Icon clicked — cancelled")
         case .success, .failure:
@@ -81,14 +75,15 @@ final class AppController: ObservableObject {
         }
     }
 
-    func start() {
+    func start(mode: PipelineMode = .copyText) {
         guard state.canStart else {
             eventLog.log("Start ignored — state is \(state.label)")
             return
         }
 
+        currentPipelineMode = mode
         captureSession = .single
-        beginWaiting(message: "Icon clicked — waiting for screenshot")
+        beginWaiting(message: mode.waitingMessage)
         scheduleSingleWaitingTimeout()
     }
 
@@ -98,6 +93,7 @@ final class AppController: ObservableObject {
             return
         }
 
+        currentPipelineMode = .copyText
         captureSession = .burst
         isBurstSession = true
         beginWaiting(message: "Start for 1 Min — waiting for screenshots")
@@ -107,12 +103,6 @@ final class AppController: ObservableObject {
     func cancel(reason: String = "Cancel clicked") {
         guard state.canCancel || isBurstSession else { return }
         endSession(reason: reason)
-    }
-
-    func toggleAIMode() {
-        guard aiModeAvailable else { return }
-        aiModeEnabled.toggle()
-        eventLog.log("AI Mode \(aiModeEnabled ? "enabled" : "disabled")")
     }
 
     func toggleDevMode() {
@@ -141,35 +131,13 @@ final class AppController: ObservableObject {
 
     private func runPipeline(_ payload: ClipboardImagePayload) async {
         do {
-            eventLog.log("OCR started")
-            let ocrResult = try await OCRService.extractText(from: payload.image)
-            eventLog.log(String(format: "OCR finished — %.2fs, confidence=%.2f",
-                                ocrResult.duration, ocrResult.averageConfidence))
-            eventLog.logText("OCR raw", ocrResult.text)
+            let finalText: String
 
-            var finalText = TextNormalizer.normalize(ocrResult.text)
-            eventLog.logText("After line-break normalize", finalText)
-
-            if aiModeEnabled && aiModeAvailable {
-                let preAIText = finalText
-                eventLog.log("AI cleanup started")
-                do {
-                    let aiResult = try await AICleaner.clean(text: finalText)
-                    eventLog.logText("AI raw output", aiResult.output)
-                    let aiNormalized = TextNormalizer.normalize(aiResult.output)
-                    let minimumLength = Int(Double(preAIText.count) * 0.85)
-
-                    if aiNormalized.count < minimumLength {
-                        eventLog.log("AI output too short — using normalized OCR")
-                        eventLog.logText("AI rejected, kept", preAIText)
-                    } else {
-                        finalText = aiNormalized
-                        eventLog.log(String(format: "AI cleanup finished — %.2fs", aiResult.duration))
-                        eventLog.logText("After AI normalize", finalText)
-                    }
-                } catch {
-                    eventLog.log("AI cleanup failed — using normalized OCR: \(error.localizedDescription)")
-                }
+            switch currentPipelineMode {
+            case .copyText:
+                finalText = try await runCopyTextPipeline(payload)
+            case .extractJSON:
+                finalText = try await runExtractJSONPipeline(payload)
             }
 
             ClipboardWriter.writeText(finalText)
@@ -180,6 +148,46 @@ final class AppController: ObservableObject {
             eventLog.log("Pipeline failed: \(error.localizedDescription)")
             finish(with: .failure)
         }
+    }
+
+    private func runCopyTextPipeline(_ payload: ClipboardImagePayload) async throws -> String {
+        eventLog.log("OCR started (local)")
+        let ocrResult = try await OCRService.extractText(from: payload.image)
+        eventLog.log(String(format: "OCR finished — %.2fs, confidence=%.2f",
+                            ocrResult.duration, ocrResult.averageConfidence))
+        eventLog.logText("OCR raw", ocrResult.text)
+
+        let finalText = TextNormalizer.normalize(ocrResult.text)
+        eventLog.logText("After line-break normalize", finalText)
+        return finalText
+    }
+
+    private func runExtractJSONPipeline(_ payload: ClipboardImagePayload) async throws -> String {
+        guard let apiKey = geminiSettings.loadAPIKey(), !apiKey.isEmpty else {
+            throw GeminiClientError.missingAPIKey
+        }
+
+        let encoded = try ImageEncoder.encodePNG(from: payload.image)
+        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel)")
+
+        let geminiResult = try await GeminiClient.extractJSON(
+            from: payload.image,
+            prompt: geminiSettings.prompt,
+            model: geminiSettings.selectedModel,
+            apiKey: apiKey,
+            fallbackAPIKey: geminiSettings.loadFallbackAPIKey()
+        )
+
+        eventLog.log(String(format: "Gemini finished — %.2fs", geminiResult.duration))
+        eventLog.logText("Gemini raw output", geminiResult.output)
+
+        if GeminiClient.isValidJSON(geminiResult.output) {
+            eventLog.log("JSON validated")
+        } else {
+            eventLog.log("JSON invalid — copying raw Gemini output anyway")
+        }
+
+        return geminiResult.output
     }
 
     private func finish(with result: WorkflowState) {
@@ -268,6 +276,10 @@ final class AppController: ObservableObject {
             case .processing: return "Processing (1 min session)"
             default: return "\(state.label) (1 min session)"
             }
+        }
+
+        if state == .waiting {
+            return "\(state.label) (\(currentPipelineMode.label))"
         }
         return state.label
     }

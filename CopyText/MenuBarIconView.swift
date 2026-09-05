@@ -2,18 +2,31 @@ import SwiftUI
 
 struct MenuBarIconView: View {
     let state: WorkflowState
+    let pipelineMode: PipelineMode
 
     var body: some View {
         Group {
             if state == .processing {
-                SVGSpinnerIcon()
+                if pipelineMode == .extractJSON {
+                    SVGSpinnerIcon(systemName: "sparkles")
+                } else {
+                    SVGSpinnerIcon(systemName: state.iconName)
+                }
             } else {
-                Image(systemName: state.iconName)
+                Image(systemName: iconName)
                     .imageScale(.medium)
             }
         }
         .symbolRenderingMode(state == .success ? .multicolor : .monochrome)
         .foregroundStyle(foregroundColor)
+    }
+
+    private var iconName: String {
+        // Use conservative SF Symbol IDs to avoid "no-image" rendering.
+        if pipelineMode == .extractJSON {
+            return "sparkles"
+        }
+        return state.iconName
     }
 
     private var foregroundColor: Color {
@@ -31,11 +44,16 @@ private struct SVGSpinnerIcon: View {
 
     private let frames = SpinnerFrames.images
     private let frameInterval: TimeInterval = 0.08
+    private let fallbackSystemName: String
+
+    init(systemName: String) {
+        self.fallbackSystemName = systemName
+    }
 
     var body: some View {
         Group {
             if frames.isEmpty {
-                Image(systemName: WorkflowState.processing.iconName)
+                Image(systemName: fallbackSystemName)
                     .imageScale(.medium)
             } else {
                 Image(nsImage: frames[frameIndex % frames.count])
