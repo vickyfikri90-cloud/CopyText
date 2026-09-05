@@ -12,7 +12,7 @@ enum GeminiClient {
         prompt: String,
         model: String,
         apiKey: String,
-        fallbackAPIKey: String?
+        fallbackAPIKeys: [String]
     ) async throws -> Result {
         let encoded = try ImageEncoder.encodePNG(from: image)
         let start = Date()
@@ -28,17 +28,27 @@ enum GeminiClient {
                 start: start
             )
         } catch {
-            guard shouldRetryWithFallback(error: error), let fallbackAPIKey, !fallbackAPIKey.isEmpty else {
+            guard shouldRetryWithFallback(error: error), !fallbackAPIKeys.isEmpty else {
                 throw error
             }
-            return try await attemptExtractJSON(
-                from: image,
-                prompt: prompt,
-                model: model,
-                encoded: encoded,
-                apiKey: fallbackAPIKey,
-                start: start
-            )
+
+            // Try each fallback key sequentially until one succeeds.
+            var lastError: Error = error
+            for fb in fallbackAPIKeys {
+                do {
+                    return try await attemptExtractJSON(
+                        from: image,
+                        prompt: prompt,
+                        model: model,
+                        encoded: encoded,
+                        apiKey: fb,
+                        start: start
+                    )
+                } catch {
+                    lastError = error
+                }
+            }
+            throw lastError
         }
         // Unreachable
         // return Result(output: "", duration: Date().timeIntervalSince(start))

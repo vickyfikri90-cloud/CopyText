@@ -138,6 +138,8 @@ final class AppController: ObservableObject {
                 finalText = try await runCopyTextPipeline(payload)
             case .extractJSON:
                 finalText = try await runExtractJSONPipeline(payload)
+            case .extractJSONThird:
+                finalText = try await runExtractJSONPipeline(payload, prompt: geminiSettings.thirdPrompt)
             }
 
             ClipboardWriter.writeText(finalText)
@@ -175,7 +177,38 @@ final class AppController: ObservableObject {
             prompt: geminiSettings.prompt,
             model: geminiSettings.selectedModel,
             apiKey: apiKey,
-            fallbackAPIKey: geminiSettings.loadFallbackAPIKey()
+            fallbackAPIKeys: geminiSettings.loadFallbackAPIKeys()
+        )
+
+        eventLog.log(String(format: "Gemini finished — %.2fs", geminiResult.duration))
+        eventLog.logText("Gemini raw output", geminiResult.output)
+
+        if GeminiClient.isValidJSON(geminiResult.output) {
+            eventLog.log("JSON validated")
+        } else {
+            eventLog.log("JSON invalid — copying raw Gemini output anyway")
+        }
+
+        return geminiResult.output
+    }
+
+    private func runExtractJSONPipeline(
+        _ payload: ClipboardImagePayload,
+        prompt: String
+    ) async throws -> String {
+        guard let apiKey = geminiSettings.loadAPIKey(), !apiKey.isEmpty else {
+            throw GeminiClientError.missingAPIKey
+        }
+
+        let encoded = try ImageEncoder.encodePNG(from: payload.image)
+        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel)")
+
+        let geminiResult = try await GeminiClient.extractJSON(
+            from: payload.image,
+            prompt: prompt,
+            model: geminiSettings.selectedModel,
+            apiKey: apiKey,
+            fallbackAPIKeys: geminiSettings.loadFallbackAPIKeys()
         )
 
         eventLog.log(String(format: "Gemini finished — %.2fs", geminiResult.duration))

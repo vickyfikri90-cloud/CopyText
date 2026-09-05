@@ -12,6 +12,8 @@ final class StatusBarController: NSObject {
     private var cancellables = Set<AnyCancellable>()
     private var lastClickTimestamp: TimeInterval = 0
     private var pendingSingleClick: DispatchWorkItem?
+    private var pendingThirdClick: DispatchWorkItem?
+    private var clickCountInWindow: Int = 0
 
     private enum ClickTiming {
         static let doubleClickWindow: TimeInterval = 0.35
@@ -76,16 +78,36 @@ final class StatusBarController: NSObject {
             pendingSingleClick?.cancel()
             pendingSingleClick = nil
             lastClickTimestamp = 0
-            controller.handleIconClick(mode: .extractJSON)
+            clickCountInWindow = min(clickCountInWindow + 1, 3)
+
+            // 2nd click => extractJSON
+            if clickCountInWindow == 2 {
+                controller.handleIconClick(mode: .extractJSON)
+            }
+            // 3rd click => optional extractJSONThird
+            if clickCountInWindow == 3 {
+                if controller.geminiSettings.isThirdCallEnabled {
+                    controller.handleIconClick(mode: .extractJSONThird)
+                } else {
+                    controller.handleIconClick(mode: .extractJSON)
+                }
+            }
+
+            // Reset after handling 2nd or 3rd click immediately.
+            clickCountInWindow = 0
+            lastClickTimestamp = 0
             return
         }
 
         lastClickTimestamp = now
+        clickCountInWindow = 1
         let clickTime = now
         let task = DispatchWorkItem { [weak self] in
             guard let self, self.lastClickTimestamp == clickTime else { return }
             self.lastClickTimestamp = 0
-            self.controller.handleIconClick(mode: .copyText)
+            let mode: PipelineMode = .copyText
+            self.controller.handleIconClick(mode: mode)
+            self.clickCountInWindow = 0
         }
         pendingSingleClick = task
         DispatchQueue.main.asyncAfter(deadline: .now() + ClickTiming.doubleClickWindow, execute: task)

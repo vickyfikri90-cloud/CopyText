@@ -3,7 +3,7 @@ import SwiftUI
 struct ExtractJSONSettingsView: View {
     @ObservedObject var settings: GeminiSettings
     @State private var apiKeyInput = ""
-    @State private var fallbackApiKeyInput = ""
+    @State private var fallbackApiKeysInput = ""
     @State private var saveMessage: String?
 
     var body: some View {
@@ -39,21 +39,23 @@ struct ExtractJSONSettingsView: View {
                 }
             }
 
-            Section("Fallback API Key (optional)") {
-                SecureField("Paste Gemini fallback API key", text: $fallbackApiKeyInput)
-                    .textFieldStyle(.roundedBorder)
+            Section("Fallback API Keys (optional)") {
+                TextEditor(text: $fallbackApiKeysInput)
+                    .frame(minHeight: 90, maxHeight: 140)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.secondary.opacity(0.2), lineWidth: 1)
+                    )
+                .accessibilityLabel("Fallback API Keys input")
 
                 HStack {
-                    Button("Save Fallback") {
-                        saveFallbackAPIKey()
-                    }
-                    .disabled(fallbackApiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !settings.hasFallbackAPIKey)
+                    Button("Save Fallbacks") { saveFallbackAPIKeys() }
+                }
 
-                    if settings.hasFallbackAPIKey {
-                        Text("Saved")
-                            .font(.caption)
-                            .foregroundStyle(.green)
-                    }
+                if settings.fallbackAPIKeyCount > 0 {
+                    Text("Saved \(settings.fallbackAPIKeyCount) key(s)")
+                        .font(.caption)
+                        .foregroundStyle(.green)
                 }
 
                 if let saveMessage {
@@ -61,6 +63,10 @@ struct ExtractJSONSettingsView: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+
+                Text("Paste one key per line.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
             Section("Model") {
@@ -73,6 +79,16 @@ struct ExtractJSONSettingsView: View {
 
             Section("Prompt") {
                 TextField("Prompt", text: $settings.prompt, axis: .vertical)
+                    .textFieldStyle(.roundedBorder)
+                    .lineLimit(3...6)
+            }
+
+            Section {
+                Toggle("Enable third call mode", isOn: $settings.isThirdCallEnabled)
+            }
+
+            Section("Third call prompt") {
+                TextField("Third call prompt", text: $settings.thirdPrompt, axis: .vertical)
                     .textFieldStyle(.roundedBorder)
                     .lineLimit(3...6)
             }
@@ -93,9 +109,7 @@ struct ExtractJSONSettingsView: View {
             if let existing = settings.loadAPIKey() {
                 apiKeyInput = existing
             }
-            if let existing = settings.loadFallbackAPIKey() {
-                fallbackApiKeyInput = existing
-            }
+            fallbackApiKeysInput = settings.loadFallbackAPIKeys().joined(separator: "\n")
         }
     }
 
@@ -108,10 +122,13 @@ struct ExtractJSONSettingsView: View {
         }
     }
 
-    private func saveFallbackAPIKey() {
+    private func saveFallbackAPIKeys() {
         do {
-            try settings.saveFallbackAPIKey(fallbackApiKeyInput)
-            saveMessage = settings.hasFallbackAPIKey ? "Fallback key saved to Keychain." : "Fallback key removed."
+            let keys = fallbackApiKeysInput
+                .split(whereSeparator: \.isNewline)
+                .map { String($0) }
+            try settings.saveFallbackAPIKeys(keys)
+            saveMessage = settings.fallbackAPIKeyCount > 0 ? "Fallback keys saved to Keychain." : "Fallback keys removed."
         } catch {
             saveMessage = error.localizedDescription
         }

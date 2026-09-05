@@ -17,24 +17,40 @@ struct MenuBarIconView: View {
                     .imageScale(.medium)
             }
         }
-        .symbolRenderingMode(state == .success ? .multicolor : .monochrome)
+        // Force monochrome rendering (monochrome checkmark instead of multicolor).
+        .symbolRenderingMode(.monochrome)
         .foregroundStyle(foregroundColor)
     }
 
     private var iconName: String {
-        // Use conservative SF Symbol IDs to avoid "no-image" rendering.
-        if pipelineMode == .extractJSON {
+        // Keep `idle` identical across modes.
+        // Differentiate Extract JSON only during `waiting` / `processing`.
+        if state != .idle, pipelineMode == .extractJSON {
+            return "sparkles"
+        }
+        if state != .idle, pipelineMode == .extractJSONThird {
             return "sparkles"
         }
         return state.iconName
     }
 
     private var foregroundColor: Color {
+        let base: Color
         switch state {
-        case .success: .green
-        case .failure: .orange
-        case .idle, .waiting, .processing: Color(nsColor: .labelColor)
+        case .success:
+            base = Color(nsColor: .systemGreen)
+        case .failure:
+            base = Color(nsColor: .systemOrange)
+        case .idle, .waiting, .processing:
+            base = Color(nsColor: .labelColor)
         }
+
+        if (state == .idle || state == .waiting || state == .processing),
+           pipelineMode == .extractJSONThird {
+            return .blue
+        }
+
+        return base
     }
 }
 
