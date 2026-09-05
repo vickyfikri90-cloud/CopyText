@@ -30,16 +30,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func showExtractJSONSettings() {
-        if settingsWindow == nil {
-            let hosting = NSHostingController(
-                rootView: ExtractJSONSettingsView(settings: controller.geminiSettings)
-            )
-            let window = NSWindow(contentViewController: hosting)
-            window.title = "Extract JSON Settings"
-            window.setContentSize(NSSize(width: 420, height: 420))
-            window.center()
-            settingsWindow = window
-        }
+        settingsWindow?.close()
+        settingsWindow = nil
+
+        let hosting = NSHostingController(
+            rootView: ExtractJSONSettingsView(settings: controller.geminiSettings)
+        )
+        let window = NSWindow(contentViewController: hosting)
+        window.title = "Extract JSON Settings"
+        window.setContentSize(NSSize(width: 480, height: 540))
+        window.center()
+        settingsWindow = window
+
         settingsWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }

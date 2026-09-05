@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Extract JSON Settings — Structure Preview</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: #1e1e1e;
+      color: #e5e5e5;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    .note {
+      position: fixed;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      background: #2a2a2a;
+      border: 1px dashed #555;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #aaa;
+      text-align: center;
+    }
+
+    .window {
+      width: 480px;
+      background: #282828;
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      overflow: hidden;
+      margin-top: 48px;
+    }
+
+    .titlebar {
+      background: #323232;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .traffic-lights {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot.red,
+    .dot.yellow,
+    .dot.green { background: #666; }
+
+    .titlebar h1 {
+      flex: 1;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ccc;
+      margin-right: 54px;
+    }
+
+    .content {
+      padding: 20px;
+      max-height: 540px;
+      overflow-y: auto;
+    }
+
+    .section {
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .title-row .section-title {
+      margin-bottom: 0;
+    }
+
+    .info-tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      color: #888;
+      cursor: default;
+      flex-shrink: 0;
+    }
+
+    .info-tip svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+
+    .info-tip:hover {
+      color: #ccc;
+    }
+
+    .info-tip .tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      width: 220px;
+      padding: 8px 10px;
+      background: #1a1a1a;
+      border: 1px solid #555;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 400;
+      line-height: 1.4;
+      color: #ccc;
+      text-align: left;
+      z-index: 10;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+
+    .info-tip .tooltip::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: #555;
+    }
+
+    .info-tip:hover .tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .toggle-row .toggle-label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #e5e5e5;
+    }
+
+    .field-label {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #444;
+      border-radius: 6px;
+      color: #e5e5e5;
+      font-family: inherit;
+      font-size: 13px;
+      padding: 8px 10px;
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23999' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 6px 14px;
+      font-size: 13px;
+      font-family: inherit;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      background: #e5e5e5;
+      color: #1a1a1a;
+    }
+
+    .btn:disabled {
+      background: #3a3a3a;
+      color: #888;
+      cursor: default;
+    }
+
+    .btn.link {
+      background: none;
+      color: #ccc;
+      padding: 0;
+      margin-top: 0;
+      font-size: 13px;
+    }
+
+    .btn.link:hover { text-decoration: underline; color: #fff; }
+
+    .btn-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 10px;
+      width: 100%;
+    }
+
+    .btn-row .btn {
+      margin-top: 0;
+    }
+
+    .btn.secondary {
+      background: transparent;
+      color: #ccc;
+      border: none;
+      padding: 6px 0;
+      margin-top: 0;
+      text-decoration: none;
+    }
+
+    .btn.secondary:hover {
+      background: transparent;
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .hint {
+      font-size: 11px;
+      color: #777;
+      margin-top: 6px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+      margin-bottom: 20px;
+    }
+
+    .toggle-row label {
+      font-size: 13px;
+      color: #e5e5e5;
+    }
+
+    .toggle {
+      width: 44px;
+      height: 26px;
+      background: #444;
+      border-radius: 13px;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .toggle.on { background: #aaa; }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      width: 22px;
+      height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+
+    .toggle.on::after { transform: translateX(18px); }
+
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+  <div class="note">
+    Structure preview only — click toggles/buttons to test show/hide. Give feedback on layout before Swift build.
+  </div>
+
+  <div class="window">
+    <div class="titlebar">
+      <div class="traffic-lights">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <h1>Extract JSON Settings</h1>
+    </div>
+
+    <div class="content">
+
+      <div class="section">
+        <div class="section-title">API Key</div>
+        <label class="field-label" for="apiKey">Paste Gemini API key</label>
+        <input type="password" id="apiKey" value="AIza••••••••••••••••" oninput="updateSaveKeyBtn()" />
+        <div class="btn-row">
+          <button class="btn" id="saveKeyBtn" disabled>Saved</button>
+          <a class="btn secondary" href="https://aistudio.google.com/u/1/api-keys" target="_blank" rel="noopener noreferrer">Get my API</a>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="title-row">
+          <div class="section-title">Fallback API Keys</div>
+          <span class="info-tip" aria-label="Fallback API keys info">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="tooltip">Backup keys used when your primary API key hits rate limits. The app tries them in order.</span>
+          </span>
+        </div>
+
+        <div id="fallbackCollapsed">
+          <button class="btn link" onclick="showFallback()">+ Add fallback keys</button>
+        </div>
+
+        <div id="fallbackExpanded" class="hidden">
+          <textarea id="fallbackKeys" oninput="updateSaveFallbackBtn()">AIza-fallback-1
+AIza-fallback-2</textarea>
+          <p class="hint">Paste one key per line.</p>
+          <button class="btn" id="saveFallbackBtn" onclick="saveFallback()">Save Fallbacks</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Model</div>
+        <select>
+          <option selected>Gemini 3.5 Flash Lite</option>
+          <option>Gemini 3.5 Flash</option>
+          <option>Gemini 3.6 Flash</option>
+          <option>Gemini 3.7 Flash</option>
+          <option>Gemini 3.8 Flash</option>
+          <option>Gemini 3.1 Flash Lite</option>
+          <option>Gemini Flash Latest (auto)</option>
+        </select>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Prompt</div>
+        <textarea>Extract the data in json format</textarea>
+      </div>
+
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <span>Enable third call mode</span>
+          <span class="info-tip" aria-label="Third call mode info">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <span class="tooltip">Double-click to start Extract JSON, then click once more while waiting to switch to a separate prompt.</span>
+          </span>
+        </div>
+        <div class="toggle" id="thirdCallToggle" onclick="toggleThirdCall()"></div>
+      </div>
+
+      <div class="section hidden" id="thirdCallSection">
+        <div class="section-title">Third call prompt</div>
+        <textarea>Extract the data in json format (third call)</textarea>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const savedApiKey = "AIza••••••••••••••••";
+    let savedFallback = "AIza-fallback-1\nAIza-fallback-2";
+
+    function updateSaveKeyBtn() {
+      const input = document.getElementById("apiKey").value.trim();
+      const btn = document.getElementById("saveKeyBtn");
+      const isSaved = input === savedApiKey;
+      btn.textContent = isSaved ? "Saved" : "Save Key";
+      btn.disabled = input === "" || isSaved;
+    }
+
+    function updateSaveFallbackBtn() {
+      const input = document.getElementById("fallbackKeys").value.trim();
+      const btn = document.getElementById("saveFallbackBtn");
+      const isSaved = input === savedFallback.trim();
+      btn.textContent = isSaved ? "Saved" : "Save Fallbacks";
+      btn.disabled = input === "" || isSaved;
+    }
+
+    function saveFallback() {
+      savedFallback = document.getElementById("fallbackKeys").value.trim();
+      updateSaveFallbackBtn();
+    }
+
+    function showFallback() {
+      document.getElementById("fallbackCollapsed").classList.add("hidden");
+      document.getElementById("fallbackExpanded").classList.remove("hidden");
+      updateSaveFallbackBtn();
+    }
+
+    function toggleThirdCall() {
+      document.getElementById("thirdCallToggle").classList.toggle("on");
+      document.getElementById("thirdCallSection").classList.toggle("hidden");
+    }
+
+    updateSaveKeyBtn();
+  </script>
+
+</body>
+</html>
