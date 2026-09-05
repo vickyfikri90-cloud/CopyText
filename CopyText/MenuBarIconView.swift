@@ -9,6 +9,8 @@ struct MenuBarIconView: View {
             if state == .processing {
                 if pipelineMode == .extractJSON {
                     SVGSpinnerIcon(systemName: "sparkles")
+                } else if pipelineMode == .extractJSONThird {
+                    SVGSpinnerIcon(systemName: "square.grid.2x2")
                 } else {
                     SVGSpinnerIcon(systemName: state.iconName)
                 }
@@ -29,28 +31,20 @@ struct MenuBarIconView: View {
             return "sparkles"
         }
         if state != .idle, pipelineMode == .extractJSONThird {
-            return "sparkles"
+            return "square.grid.2x2"
         }
         return state.iconName
     }
 
     private var foregroundColor: Color {
-        let base: Color
         switch state {
         case .success:
-            base = Color(nsColor: .systemGreen)
+            return Color(nsColor: .systemGreen)
         case .failure:
-            base = Color(nsColor: .systemOrange)
+            return Color(nsColor: .systemOrange)
         case .idle, .waiting, .processing:
-            base = Color(nsColor: .labelColor)
+            return Color(nsColor: .labelColor)
         }
-
-        if (state == .idle || state == .waiting || state == .processing),
-           pipelineMode == .extractJSONThird {
-            return .blue
-        }
-
-        return base
     }
 }
 

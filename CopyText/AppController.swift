@@ -75,6 +75,16 @@ final class AppController: ObservableObject {
         }
     }
 
+    func upgradeToThirdCall() {
+        guard state == .waiting,
+              currentPipelineMode == .extractJSON,
+              geminiSettings.isThirdCallEnabled else {
+            return
+        }
+        currentPipelineMode = .extractJSONThird
+        eventLog.log("Third call mode — waiting for screenshot")
+    }
+
     func start(mode: PipelineMode = .copyText) {
         guard state.canStart else {
             eventLog.log("Start ignored — state is \(state.label)")

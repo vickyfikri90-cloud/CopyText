@@ -12,8 +12,6 @@ final class StatusBarController: NSObject {
     private var cancellables = Set<AnyCancellable>()
     private var lastClickTimestamp: TimeInterval = 0
     private var pendingSingleClick: DispatchWorkItem?
-    private var pendingThirdClick: DispatchWorkItem?
-    private var clickCountInWindow: Int = 0
 
     private enum ClickTiming {
         static let doubleClickWindow: TimeInterval = 0.35
@@ -55,10 +53,10 @@ final class StatusBarController: NSObject {
 
     private func observeState() {
         controller.$state
+            .combineLatest(controller.$currentPipelineMode)
             .receive(on: RunLoop.main)
-            .sink { [weak self] state in
-                guard let self else { return }
-                self.hostingView?.rootView = MenuBarIconView(state: state, pipelineMode: self.controller.currentPipelineMode)
+            .sink { [weak self] state, pipelineMode in
+                self?.hostingView?.rootView = MenuBarIconView(state: state, pipelineMode: pipelineMode)
             }
             .store(in: &cancellables)
     }
@@ -71,43 +69,34 @@ final class StatusBarController: NSObject {
             return
         }
 
-        let now = ProcessInfo.processInfo.systemUptime
-        // Only treat as a double-click if we already have a previous click timestamp.
-        // This avoids mis-detecting the very first click right after app launch.
-        if lastClickTimestamp > 0, now - lastClickTimestamp < ClickTiming.doubleClickWindow {
-            pendingSingleClick?.cancel()
-            pendingSingleClick = nil
-            lastClickTimestamp = 0
-            clickCountInWindow = min(clickCountInWindow + 1, 3)
+        pendingSingleClick?.cancel()
+        pendingSingleClick = nil
 
-            // 2nd click => extractJSON
-            if clickCountInWindow == 2 {
-                controller.handleIconClick(mode: .extractJSON)
+        // Waiting: one extra click on Extract JSON → third call; otherwise cancel.
+        if controller.state == .waiting {
+            if controller.currentPipelineMode == .extractJSON,
+               controller.geminiSettings.isThirdCallEnabled {
+                controller.upgradeToThirdCall()
+            } else {
+                controller.cancel(reason: "Icon clicked — cancelled")
             }
-            // 3rd click => optional extractJSONThird
-            if clickCountInWindow == 3 {
-                if controller.geminiSettings.isThirdCallEnabled {
-                    controller.handleIconClick(mode: .extractJSONThird)
-                } else {
-                    controller.handleIconClick(mode: .extractJSON)
-                }
-            }
-
-            // Reset after handling 2nd or 3rd click immediately.
-            clickCountInWindow = 0
             lastClickTimestamp = 0
             return
         }
 
+        let now = ProcessInfo.processInfo.systemUptime
+        if lastClickTimestamp > 0, now - lastClickTimestamp < ClickTiming.doubleClickWindow {
+            lastClickTimestamp = 0
+            controller.handleIconClick(mode: .extractJSON)
+            return
+        }
+
         lastClickTimestamp = now
-        clickCountInWindow = 1
         let clickTime = now
         let task = DispatchWorkItem { [weak self] in
             guard let self, self.lastClickTimestamp == clickTime else { return }
             self.lastClickTimestamp = 0
-            let mode: PipelineMode = .copyText
-            self.controller.handleIconClick(mode: mode)
-            self.clickCountInWindow = 0
+            self.controller.handleIconClick(mode: .copyText)
         }
         pendingSingleClick = task
         DispatchQueue.main.asyncAfter(deadline: .now() + ClickTiming.doubleClickWindow, execute: task)
@@ -162,7 +151,7 @@ final class StatusBarController: NSObject {
         menu.addItem(.separator())
 
         let hintItem = NSMenuItem(
-            title: "Single-click: CopyText · Double-click: Extract JSON",
+            title: "1× CopyText · 2× Extract JSON · +1× Third call",
             action: nil,
             keyEquivalent: ""
         )

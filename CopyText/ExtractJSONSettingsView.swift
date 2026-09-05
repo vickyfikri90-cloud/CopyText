@@ -97,6 +97,7 @@ struct ExtractJSONSettingsView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     Label("Single-click icon → CopyText (local OCR)", systemImage: "1.circle")
                     Label("Double-click icon → Extract JSON (cloud)", systemImage: "2.circle")
+                    Label("While waiting: click once more → Third call", systemImage: "3.circle")
                 }
                 .font(.caption)
                 .foregroundStyle(.secondary)
