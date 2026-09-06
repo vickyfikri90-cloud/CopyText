@@ -11,47 +11,37 @@ enum GeminiClient {
         from image: NSImage,
         prompt: String,
         model: String,
-        apiKey: String,
-        fallbackAPIKeys: [String]
-    ) async throws -> Result {
+        apiKeys: [String],
+        startingIndex: Int
+    ) async throws -> (result: Result, usedIndex: Int) {
+        guard !apiKeys.isEmpty else {
+            throw GeminiClientError.missingAPIKey
+        }
+
         let encoded = try ImageEncoder.encodePNG(from: image)
         let start = Date()
+        var lastError: Error = GeminiClientError.missingAPIKey
 
-        // Try primary first; if rate-limited, retry once with fallback key.
-        do {
-            return try await attemptExtractJSON(
-                from: image,
-                prompt: prompt,
-                model: model,
-                encoded: encoded,
-                apiKey: apiKey,
-                start: start
-            )
-        } catch {
-            guard shouldRetryWithFallback(error: error), !fallbackAPIKeys.isEmpty else {
-                throw error
-            }
+        for offset in 0..<apiKeys.count {
+            let index = (startingIndex + offset) % apiKeys.count
+            let apiKey = apiKeys[index]
 
-            // Try each fallback key sequentially until one succeeds.
-            var lastError: Error = error
-            for fb in fallbackAPIKeys {
-                do {
-                    return try await attemptExtractJSON(
-                        from: image,
-                        prompt: prompt,
-                        model: model,
-                        encoded: encoded,
-                        apiKey: fb,
-                        start: start
-                    )
-                } catch {
-                    lastError = error
-                }
+            do {
+                let result = try await attemptExtractJSON(
+                    from: image,
+                    prompt: prompt,
+                    model: model,
+                    encoded: encoded,
+                    apiKey: apiKey,
+                    start: start
+                )
+                return (result, index)
+            } catch {
+                lastError = error
             }
-            throw lastError
         }
-        // Unreachable
-        // return Result(output: "", duration: Date().timeIntervalSince(start))
+
+        throw lastError
     }
 
     static func isValidJSON(_ text: String) -> Bool {
@@ -66,14 +56,6 @@ enum GeminiClient {
             result = result.replacingOccurrences(of: "\\s*```$", with: "", options: .regularExpression)
         }
         return result.trimmingCharacters(in: .whitespacesAndNewlines)
-    }
-
-    private static func shouldRetryWithFallback(error: Error) -> Bool {
-        // Retry on rate-limit or auth/quota-related HTTP errors.
-        if case GeminiClientError.httpError(let code) = error {
-            return code == 429 || code == 403 || code == 401
-        }
-        return false
     }
 
     private static func attemptExtractJSON(

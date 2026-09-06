@@ -19,32 +19,22 @@ struct MenuBarIconView: View {
                     .imageScale(.medium)
             }
         }
-        // Force monochrome rendering (monochrome checkmark instead of multicolor).
         .symbolRenderingMode(.monochrome)
-        .foregroundStyle(foregroundColor)
+        .foregroundStyle(Color(nsColor: .labelColor))
     }
 
     private var iconName: String {
         // Keep `idle` identical across modes.
         // Differentiate Extract JSON only during `waiting` / `processing`.
-        if state != .idle, pipelineMode == .extractJSON {
+        // IMPORTANT: success/failure must always use the workflow state's icon
+        // (e.g. checkmark/exclamation) and rely on monochrome rendering.
+        if state == .waiting, pipelineMode == .extractJSON {
             return "sparkles"
         }
-        if state != .idle, pipelineMode == .extractJSONThird {
+        if state == .waiting, pipelineMode == .extractJSONThird {
             return "square.grid.2x2"
         }
         return state.iconName
-    }
-
-    private var foregroundColor: Color {
-        switch state {
-        case .success:
-            return Color(nsColor: .systemGreen)
-        case .failure:
-            return Color(nsColor: .systemOrange)
-        case .idle, .waiting, .processing:
-            return Color(nsColor: .labelColor)
-        }
     }
 }
 
@@ -65,13 +55,16 @@ private struct SVGSpinnerIcon: View {
             if frames.isEmpty {
                 Image(systemName: fallbackSystemName)
                     .imageScale(.medium)
+                    .symbolRenderingMode(.monochrome)
             } else {
                 Image(nsImage: frames[frameIndex % frames.count])
+                    .renderingMode(.template)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 16, height: 16)
             }
         }
+        .foregroundStyle(Color(nsColor: .labelColor))
         .onAppear { startLoop() }
         .onDisappear { stopLoop() }
     }

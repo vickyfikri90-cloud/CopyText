@@ -2,7 +2,7 @@ import SwiftUI
 
 private enum ExtractJSONSettingsCopy {
     static let geminiAPIKeysURL = URL(string: "https://aistudio.google.com/u/1/api-keys")!
-    static let fallbackKeysHelp = "Backup keys used when your primary API key hits rate limits. The app tries them in order."
+    static let fallbackKeysHelp = "Extra API keys used in rotation. Each request starts with the next key; if it fails, the app tries the rest."
     static let thirdCallHelp = "Double-click to start Extract JSON, then click once more while waiting to switch to a separate prompt."
 }
 

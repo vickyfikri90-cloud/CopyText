@@ -49,6 +49,8 @@ final class GeminiSettings: ObservableObject {
         static let prompt = "geminiPrompt"
         static let thirdPrompt = "geminiThirdPrompt"
         static let thirdCallEnabled = "geminiThirdCallEnabled"
+        static let lastUsedAPIKeyIndex = "geminiLastUsedAPIKeyIndex"
+        static let lastUsedAPIKeyPoolCount = "geminiLastUsedAPIKeyPoolCount"
     }
 
     init() {
@@ -102,6 +104,42 @@ final class GeminiSettings: ObservableObject {
             }
         }
         return keys
+    }
+
+    /// Primary key first, then fallback keys — the rolling pool.
+    func allAPIKeys() -> [String] {
+        var keys: [String] = []
+        if let primary = loadAPIKey()?.trimmingCharacters(in: .whitespacesAndNewlines), !primary.isEmpty {
+            keys.append(primary)
+        }
+        keys.append(contentsOf: loadFallbackAPIKeys())
+        return keys
+    }
+
+    /// Index of the next key to try (round-robin). Resets when the pool size changes.
+    func indexForNextRequest() -> Int {
+        let keys = allAPIKeys()
+        guard !keys.isEmpty else { return 0 }
+
+        let savedCount = UserDefaults.standard.integer(forKey: Keys.lastUsedAPIKeyPoolCount)
+        if savedCount != keys.count {
+            return 0
+        }
+
+        guard UserDefaults.standard.object(forKey: Keys.lastUsedAPIKeyIndex) != nil else {
+            return 0
+        }
+
+        let lastUsed = UserDefaults.standard.integer(forKey: Keys.lastUsedAPIKeyIndex)
+        return (lastUsed + 1) % keys.count
+    }
+
+    func markAPIKeyUsed(at index: Int) {
+        let keys = allAPIKeys()
+        guard !keys.isEmpty else { return }
+        let clamped = ((index % keys.count) + keys.count) % keys.count
+        UserDefaults.standard.set(clamped, forKey: Keys.lastUsedAPIKeyIndex)
+        UserDefaults.standard.set(keys.count, forKey: Keys.lastUsedAPIKeyPoolCount)
     }
 
     /// Replace all fallback keys with the provided list.

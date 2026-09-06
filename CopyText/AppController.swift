@@ -175,62 +175,68 @@ final class AppController: ObservableObject {
     }
 
     private func runExtractJSONPipeline(_ payload: ClipboardImagePayload) async throws -> String {
-        guard let apiKey = geminiSettings.loadAPIKey(), !apiKey.isEmpty else {
+        let apiKeys = geminiSettings.allAPIKeys()
+        guard !apiKeys.isEmpty else {
             throw GeminiClientError.missingAPIKey
         }
 
+        let startIndex = geminiSettings.indexForNextRequest()
         let encoded = try ImageEncoder.encodePNG(from: payload.image)
-        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel)")
+        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel), key \(startIndex + 1)/\(apiKeys.count)")
 
         let geminiResult = try await GeminiClient.extractJSON(
             from: payload.image,
             prompt: geminiSettings.prompt,
             model: geminiSettings.selectedModel,
-            apiKey: apiKey,
-            fallbackAPIKeys: geminiSettings.loadFallbackAPIKeys()
+            apiKeys: apiKeys,
+            startingIndex: startIndex
         )
 
-        eventLog.log(String(format: "Gemini finished — %.2fs", geminiResult.duration))
-        eventLog.logText("Gemini raw output", geminiResult.output)
+        geminiSettings.markAPIKeyUsed(at: geminiResult.usedIndex)
+        eventLog.log(String(format: "Gemini finished — %.2fs (key %d/%d)", geminiResult.result.duration, geminiResult.usedIndex + 1, apiKeys.count))
+        eventLog.logText("Gemini raw output", geminiResult.result.output)
 
-        if GeminiClient.isValidJSON(geminiResult.output) {
+        if GeminiClient.isValidJSON(geminiResult.result.output) {
             eventLog.log("JSON validated")
         } else {
             eventLog.log("JSON invalid — copying raw Gemini output anyway")
         }
 
-        return geminiResult.output
+        return geminiResult.result.output
     }
 
     private func runExtractJSONPipeline(
         _ payload: ClipboardImagePayload,
         prompt: String
     ) async throws -> String {
-        guard let apiKey = geminiSettings.loadAPIKey(), !apiKey.isEmpty else {
+        let apiKeys = geminiSettings.allAPIKeys()
+        guard !apiKeys.isEmpty else {
             throw GeminiClientError.missingAPIKey
         }
 
+        let startIndex = geminiSettings.indexForNextRequest()
         let encoded = try ImageEncoder.encodePNG(from: payload.image)
-        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel)")
+        eventLog.log("Screenshot uploaded to Gemini — \(encoded.byteCount) bytes PNG, model=\(geminiSettings.selectedModel), key \(startIndex + 1)/\(apiKeys.count)")
 
         let geminiResult = try await GeminiClient.extractJSON(
             from: payload.image,
             prompt: prompt,
             model: geminiSettings.selectedModel,
-            apiKey: apiKey,
-            fallbackAPIKeys: geminiSettings.loadFallbackAPIKeys()
+            apiKeys: apiKeys,
+            startingIndex: startIndex
         )
 
-        eventLog.log(String(format: "Gemini finished — %.2fs", geminiResult.duration))
-        eventLog.logText("Gemini raw output", geminiResult.output)
+        geminiSettings.markAPIKeyUsed(at: geminiResult.usedIndex)
+        eventLog.log(String(format: "Gemini finished — %.2fs (key %d/%d)", geminiResult.result.duration, geminiResult.usedIndex + 1, apiKeys.count))
+        eventLog.logText("Gemini raw output", geminiResult.result.output)
 
-        if GeminiClient.isValidJSON(geminiResult.output) {
+        if GeminiClient.isValidJSON(geminiResult.result.output) {
             eventLog.log("JSON validated")
         } else {
             eventLog.log("JSON invalid — copying raw Gemini output anyway")
         }
 
-        return geminiResult.output
+        return geminiResult.result.output
     }
 
     private func finish(with result: WorkflowState) {
