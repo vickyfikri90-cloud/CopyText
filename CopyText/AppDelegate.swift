@@ -16,6 +16,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        ScreenshotCaptureSettings.restoreIfNeeded()
+    }
+
     func showDevLog() {
         if devLogWindow == nil {
             let hosting = NSHostingController(rootView: DevLogWindow(eventLog: controller.eventLog))

@@ -10,12 +10,6 @@ final class StatusBarController: NSObject {
     private var statusItem: NSStatusItem?
     private var hostingView: NSHostingView<MenuBarIconView>?
     private var cancellables = Set<AnyCancellable>()
-    private var lastClickTimestamp: TimeInterval = 0
-    private var pendingSingleClick: DispatchWorkItem?
-
-    private enum ClickTiming {
-        static let doubleClickWindow: TimeInterval = 0.35
-    }
 
     init(
         controller: AppController,
@@ -69,37 +63,17 @@ final class StatusBarController: NSObject {
             return
         }
 
-        pendingSingleClick?.cancel()
-        pendingSingleClick = nil
-
-        // Waiting: one extra click on Extract JSON → third call; otherwise cancel.
         if controller.state == .waiting {
-            if controller.currentPipelineMode == .extractJSON,
-               controller.geminiSettings.isThirdCallEnabled {
-                controller.upgradeToThirdCall()
-            } else {
-                controller.cancel(reason: "Icon clicked — cancelled")
-            }
-            lastClickTimestamp = 0
+            controller.advanceWaitingTap()
             return
         }
 
-        let now = ProcessInfo.processInfo.systemUptime
-        if lastClickTimestamp > 0, now - lastClickTimestamp < ClickTiming.doubleClickWindow {
-            lastClickTimestamp = 0
-            controller.handleIconClick(mode: .extractJSON)
+        if controller.state == .idle {
+            controller.start(mode: .copyText)
             return
         }
 
-        lastClickTimestamp = now
-        let clickTime = now
-        let task = DispatchWorkItem { [weak self] in
-            guard let self, self.lastClickTimestamp == clickTime else { return }
-            self.lastClickTimestamp = 0
-            self.controller.handleIconClick(mode: .copyText)
-        }
-        pendingSingleClick = task
-        DispatchQueue.main.asyncAfter(deadline: .now() + ClickTiming.doubleClickWindow, execute: task)
+        controller.handleIconClick(mode: .copyText)
     }
 
     private func showMenu(on button: NSStatusBarButton) {
@@ -151,7 +125,7 @@ final class StatusBarController: NSObject {
         menu.addItem(.separator())
 
         let hintItem = NSMenuItem(
-            title: "1× CopyText · 2× Extract JSON · +1× Third call",
+            title: "Tap: CopyText → Extract JSON → Third call → Cancel",
             action: nil,
             keyEquivalent: ""
         )

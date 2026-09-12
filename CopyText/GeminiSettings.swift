@@ -6,11 +6,18 @@ struct GeminiModelOption: Identifiable, Hashable {
     let label: String
 }
 
+private struct StoredAPIKeys: Codable, Equatable {
+    var primary: String?
+    var fallbacks: [String]
+}
+
 @MainActor
 final class GeminiSettings: ObservableObject {
-    static let apiKeyAccount = "gemini-api-key"
-    static let fallbackAPIKeyAccountPrefix = "gemini-api-key-fallback-"
-    static let fallbackCountKey = "geminiFallbackCount"
+    private static let apiKeysBundleAccount = "gemini-api-keys"
+    private static let legacyPrimaryAccount = "gemini-api-key"
+    private static let legacyFallbackAccountPrefix = "gemini-api-key-fallback-"
+    private static let legacyFallbackCountKey = "geminiFallbackCount"
+
     static let defaultPrompt = "Extract the data in json format"
     static let defaultThirdPrompt = "Extract the data in json format (third call)"
     static let defaultModelID = "gemini-3.5-flash-lite"
@@ -44,6 +51,9 @@ final class GeminiSettings: ObservableObject {
     @Published private(set) var hasAPIKey: Bool = false
     @Published private(set) var fallbackAPIKeyCount: Int = 0
 
+    private var cachedAPIKeys: StoredAPIKeys?
+    private var didLoadAPIKeys = false
+
     private enum Keys {
         static let model = "geminiSelectedModel"
         static let prompt = "geminiPrompt"
@@ -68,51 +78,39 @@ final class GeminiSettings: ObservableObject {
             ?? Self.defaultThirdPrompt
 
         isThirdCallEnabled = UserDefaults.standard.bool(forKey: Keys.thirdCallEnabled)
+        _ = storedAPIKeys()
         refreshAPIKeyStatus()
     }
 
     func refreshAPIKeyStatus() {
-        hasAPIKey = KeychainStore.load(account: Self.apiKeyAccount) != nil
-        fallbackAPIKeyCount = loadFallbackAPIKeys().count
+        let stored = storedAPIKeys()
+        hasAPIKey = stored.primary.map { !$0.isEmpty } ?? false
+        fallbackAPIKeyCount = stored.fallbacks.count
     }
 
     func saveAPIKey(_ key: String) throws {
+        var stored = storedAPIKeys()
         let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
-            try KeychainStore.delete(account: Self.apiKeyAccount)
-            refreshAPIKeyStatus()
-            return
-        }
-        try KeychainStore.save(account: Self.apiKeyAccount, value: trimmed)
-        refreshAPIKeyStatus()
+        stored.primary = trimmed.isEmpty ? nil : trimmed
+        try persist(stored)
     }
 
     func loadAPIKey() -> String? {
-        KeychainStore.load(account: Self.apiKeyAccount)
+        storedAPIKeys().primary
     }
 
     func loadFallbackAPIKeys() -> [String] {
-        let count = UserDefaults.standard.integer(forKey: Self.fallbackCountKey)
-        guard count > 0 else { return [] }
-        var keys: [String] = []
-        keys.reserveCapacity(count)
-        for idx in 1...count {
-            let account = Self.fallbackAPIKeyAccountPrefix + "\(idx)"
-            if let key = KeychainStore.load(account: account),
-               !key.isEmpty {
-                keys.append(key)
-            }
-        }
-        return keys
+        storedAPIKeys().fallbacks
     }
 
     /// Primary key first, then fallback keys — the rolling pool.
     func allAPIKeys() -> [String] {
+        let stored = storedAPIKeys()
         var keys: [String] = []
-        if let primary = loadAPIKey()?.trimmingCharacters(in: .whitespacesAndNewlines), !primary.isEmpty {
+        if let primary = stored.primary?.trimmingCharacters(in: .whitespacesAndNewlines), !primary.isEmpty {
             keys.append(primary)
         }
-        keys.append(contentsOf: loadFallbackAPIKeys())
+        keys.append(contentsOf: stored.fallbacks)
         return keys
     }
 
@@ -144,33 +142,113 @@ final class GeminiSettings: ObservableObject {
 
     /// Replace all fallback keys with the provided list.
     func saveFallbackAPIKeys(_ keys: [String]) throws {
-        // Delete old keys (best-effort).
-        let oldCount = UserDefaults.standard.integer(forKey: Self.fallbackCountKey)
-        if oldCount > 0 {
-            for idx in 1...oldCount {
-                let account = Self.fallbackAPIKeyAccountPrefix + "\(idx)"
-                try? KeychainStore.delete(account: account)
+        var stored = storedAPIKeys()
+        var cleaned = keys.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        cleaned = Array(cleaned.prefix(30))
+        stored.fallbacks = cleaned
+        try persist(stored)
+    }
+
+    // MARK: - Storage (file + one-time Keychain migration)
+
+    private func storedAPIKeys() -> StoredAPIKeys {
+        if didLoadAPIKeys, let cachedAPIKeys {
+            return cachedAPIKeys
+        }
+
+        let stored: StoredAPIKeys
+        if APIKeysFileStore.usesFileStorage {
+            stored = decodeStoredAPIKeys(from: APIKeysFileStore.load()) ?? StoredAPIKeys(primary: nil, fallbacks: [])
+        } else {
+            stored = migrateFromKeychainIfNeeded()
+        }
+
+        cachedAPIKeys = stored
+        didLoadAPIKeys = true
+        return stored
+    }
+
+    private func persist(_ stored: StoredAPIKeys) throws {
+        if stored.primary == nil, stored.fallbacks.isEmpty {
+            try APIKeysFileStore.delete()
+        } else {
+            let data = try JSONEncoder().encode(stored)
+            try APIKeysFileStore.save(data)
+        }
+
+        APIKeysFileStore.markUsingFileStorage()
+        purgeKeychainCopies()
+
+        cachedAPIKeys = stored
+        didLoadAPIKeys = true
+        refreshAPIKeyStatus()
+    }
+
+    private func migrateFromKeychainIfNeeded() -> StoredAPIKeys {
+        if let bundleRaw = KeychainStore.load(account: Self.apiKeysBundleAccount),
+           let stored = decodeStoredAPIKeys(from: bundleRaw.data(using: .utf8)) {
+            writeToFileAndFinishMigration(stored)
+            return stored
+        }
+
+        var primary = KeychainStore.load(account: Self.legacyPrimaryAccount)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if primary?.isEmpty == true { primary = nil }
+
+        var fallbacks: [String] = []
+        let legacyCount = UserDefaults.standard.integer(forKey: Self.legacyFallbackCountKey)
+        if legacyCount > 0 {
+            for idx in 1...legacyCount {
+                let account = Self.legacyFallbackAccountPrefix + "\(idx)"
+                if let key = KeychainStore.load(account: account)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines),
+                   !key.isEmpty {
+                    fallbacks.append(key)
+                }
             }
         }
 
-        // Save new keys.
-        var cleaned: [String] = keys.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        cleaned = Array(cleaned.prefix(30)) // hard cap to prevent abuse
+        let stored = StoredAPIKeys(primary: primary, fallbacks: fallbacks)
+        writeToFileAndFinishMigration(stored)
+        return stored
+    }
 
-        if cleaned.isEmpty {
-            UserDefaults.standard.set(0, forKey: Self.fallbackCountKey)
-            refreshAPIKeyStatus()
-            return
+    private func writeToFileAndFinishMigration(_ stored: StoredAPIKeys) {
+        if stored.primary != nil || !stored.fallbacks.isEmpty,
+           let data = try? JSONEncoder().encode(stored) {
+            try? APIKeysFileStore.save(data)
         }
+        APIKeysFileStore.markUsingFileStorage()
+        purgeKeychainCopies()
+    }
 
-        for (offset, key) in cleaned.enumerated() {
-            let idx = offset + 1
-            let account = Self.fallbackAPIKeyAccountPrefix + "\(idx)"
-            try KeychainStore.save(account: account, value: key)
+    private func purgeKeychainCopies() {
+        try? KeychainStore.delete(account: Self.apiKeysBundleAccount)
+        try? KeychainStore.delete(account: Self.legacyPrimaryAccount)
+
+        let legacyCount = UserDefaults.standard.integer(forKey: Self.legacyFallbackCountKey)
+        if legacyCount > 0 {
+            for idx in 1...legacyCount {
+                let account = Self.legacyFallbackAccountPrefix + "\(idx)"
+                try? KeychainStore.delete(account: account)
+            }
         }
+        UserDefaults.standard.removeObject(forKey: Self.legacyFallbackCountKey)
+    }
 
-        UserDefaults.standard.set(cleaned.count, forKey: Self.fallbackCountKey)
-        refreshAPIKeyStatus()
+    private func decodeStoredAPIKeys(from data: Data?) -> StoredAPIKeys? {
+        guard let data else { return nil }
+        return try? JSONDecoder().decode(StoredAPIKeys.self, from: data)
+    }
+}
+
+enum GeminiSettingsError: LocalizedError {
+    case encodingFailed
+
+    var errorDescription: String? {
+        switch self {
+        case .encodingFailed: "Failed to encode API keys for storage."
+        }
     }
 }

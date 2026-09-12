@@ -16,6 +16,8 @@
 		A10000000000000000000019 /* ImageEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* ImageEncoder.swift */; };
 		A10000000000000000000020 /* GeminiClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* GeminiClient.swift */; };
 		A10000000000000000000021 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* KeychainStore.swift */; };
+		A10000000000000000000024 /* APIKeysFileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* APIKeysFileStore.swift */; };
+		A10000000000000000000025 /* ScreenshotCaptureSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* ScreenshotCaptureSettings.swift */; };
 		A10000000000000000000022 /* GeminiSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* GeminiSettings.swift */; };
 		A10000000000000000000023 /* ExtractJSONSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* ExtractJSONSettingsView.swift */; };
 		A10000000000000000000007 /* EventLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* EventLog.swift */; };
@@ -43,6 +45,8 @@
 		A20000000000000000000024 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* GeminiSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiSettings.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* ExtractJSONSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtractJSONSettingsView.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* APIKeysFileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIKeysFileStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000028 /* ScreenshotCaptureSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotCaptureSettings.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* EventLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventLog.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* DevLogWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DevLogWindow.swift; sourceTree = "<group>"; };
 		A20000000000000000000009 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
@@ -102,6 +106,8 @@
 				A20000000000000000000022 /* ImageEncoder.swift */,
 				A20000000000000000000023 /* GeminiClient.swift */,
 				A20000000000000000000024 /* KeychainStore.swift */,
+				A20000000000000000000027 /* APIKeysFileStore.swift */,
+				A20000000000000000000028 /* ScreenshotCaptureSettings.swift */,
 				A20000000000000000000025 /* GeminiSettings.swift */,
 				A20000000000000000000026 /* ExtractJSONSettingsView.swift */,
 				A20000000000000000000007 /* EventLog.swift */,
@@ -228,6 +234,8 @@
 				A10000000000000000000019 /* ImageEncoder.swift in Sources */,
 				A10000000000000000000020 /* GeminiClient.swift in Sources */,
 				A10000000000000000000021 /* KeychainStore.swift in Sources */,
+				A10000000000000000000024 /* APIKeysFileStore.swift in Sources */,
+				A10000000000000000000025 /* ScreenshotCaptureSettings.swift in Sources */,
 				A10000000000000000000022 /* GeminiSettings.swift in Sources */,
 				A10000000000000000000023 /* ExtractJSONSettingsView.swift in Sources */,
 				A10000000000000000000007 /* EventLog.swift in Sources */,

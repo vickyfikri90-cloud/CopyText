@@ -65,7 +65,7 @@ final class AppController: ObservableObject {
         case .idle:
             start(mode: mode)
         case .waiting:
-            cancel(reason: "Icon clicked — cancelled")
+            break
         case .success, .failure:
             if isBurstSession {
                 endSession(reason: "Icon clicked — cancelled")
@@ -73,6 +73,34 @@ final class AppController: ObservableObject {
         case .processing:
             break
         }
+    }
+
+    func advanceWaitingTap() {
+        guard state == .waiting, captureSession == .single else { return }
+
+        switch currentPipelineMode {
+        case .copyText:
+            switchToExtractJSON()
+        case .extractJSON:
+            if geminiSettings.isThirdCallEnabled {
+                upgradeToThirdCall()
+            } else {
+                cancel(reason: "Icon clicked — cancelled")
+            }
+        case .extractJSONThird:
+            cancel(reason: "Icon clicked — cancelled")
+        }
+    }
+
+    func switchToExtractJSON() {
+        guard state == .waiting,
+              currentPipelineMode == .copyText,
+              captureSession == .single else {
+            return
+        }
+        currentPipelineMode = .extractJSON
+        eventLog.log("Extract JSON — waiting for screenshot")
+        scheduleSingleWaitingTimeout()
     }
 
     func upgradeToThirdCall() {
@@ -83,6 +111,7 @@ final class AppController: ObservableObject {
         }
         currentPipelineMode = .extractJSONThird
         eventLog.log("Third call mode — waiting for screenshot")
+        scheduleSingleWaitingTimeout()
     }
 
     func start(mode: PipelineMode = .copyText) {
@@ -336,6 +365,14 @@ final class AppController: ObservableObject {
     private func transition(to newState: WorkflowState) {
         guard state != newState else { return }
         let previous = state
+
+        if previous == .waiting, ScreenshotCaptureSettings.restoreIfNeeded() {
+            eventLog.log("Screenshot target restored")
+        }
+        if newState == .waiting, ScreenshotCaptureSettings.activateClipboardTarget() {
+            eventLog.log("Screenshot target set to clipboard")
+        }
+
         state = newState
         eventLog.logStateTransition(from: previous, to: newState)
     }
